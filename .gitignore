@@ -106,3 +106,6 @@ google_image_dump/
 
 # My api key
 /api_key.txt
+
+# My directories
+classified_arrays/
