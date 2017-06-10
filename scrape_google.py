@@ -1,3 +1,13 @@
+'''
+This script will download a 10x10 array of satellite images using the Google
+Static Map API and store them to the google_image_dump folder. The images are
+from Brisbane as given by the lat_start and long_start coords.
+
+Pre-requisties:
+- Have your Google Static Map API key in a text file called api_key.txt
+- Have a folder named google_image_dump
+'''
+
 import requests
 import itertools
 
