@@ -102,4 +102,7 @@ ENV/
 
 # images
 .png
+google_image_dump/
+
+# My api key
 /api_key.txt
