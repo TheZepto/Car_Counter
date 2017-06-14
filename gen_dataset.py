@@ -71,7 +71,7 @@ def main():
 	centres_fname = 'google_image_dump/{}.txt'.format(file_number)
 
 	image = imread(img_fname)
-	ROI_centers = pd.read_csv(centres_fname, sep=',', header=None).values[:-1]
+	ROI_centers = pd.read_csv(centres_fname, sep=',', header=None).values
 
 	image = crop_img_bottom(full_image, 20)
 
