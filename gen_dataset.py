@@ -1,80 +1,92 @@
 import numpy as np
 import itertools
 from scipy.misc import imread
+import pandas as pd
 from matplotlib import pyplot as plt
 
-def crop_img(img_array, crop_size=40):
-	img_array = img_array[:-crop_size,:,:]
+# Define a class for region of interest (ROI).
+# This will handle converting a large image into a smaller one
+# based on the centre position and the size specified.
+# center is a tuple or array of [row,column] of the ROI center
+# crop_size is the height and width of the ROI
+# full_image is an array of the image to set the ROI to (should be an RGB array)
+class ROI:
+	def __init__(self, center, crop_size, full_image):
+		self.row_cntr = center[0]
+		self.col_cntr = center[1]
+		self.crop_size = crop_size
+		self.full_image = full_image
 
-	return img_array
+		self.row_start = row_cntr - (crop_size // 2)
+		self.row_end = row_start + crop_size
+		
+		self.col_start = col_cntr - (crop_size // 2)
+		self.col_end = col_start + crop_size
 
-def make_training_data(img_array):
-	size = 40
-	stride = 20
+	def in_image(self):
+		# Checks if the ROI is contained within the bounds of the image
+		if self.row_start < 0:
+			return False
+		if self.col_start < 0:
+			return False
+		if self.row_end > self.full_image.shape[0]-1:
+			return False
+		if self.col_end > self.full_image.shape[2]-1:
+			return False
+		return True
 
-	height = img_array.shape[0]
-	width = img_array.shape[1]
+	def crop_to(self):
+		# Performs the crop and returns the cropped image 
+		return self.full_image[
+					self.row_start:self.row_end, 
+					self.col_start:self.col_end, :]
 
-	height_steps = (height - size) // stride
-	width_steps = (width - size) // stride
+# Removes the bottom of an image to take out any text that appears there
+def crop_img_bottom(img_array, crop_size=40):
+	return img_array[:-crop_size,:,:]
 
-	total_imgs = height_steps * width_steps
-
-	x_train = np.zeros([total_imgs, size, size, 3], dtype=np.uint8)
-
-	i = 0
-
-	for y, x in itertools.product(range(height_steps), range(width_steps)):
-		img = img_array[y*stride:y*stride+size, x*stride:x*stride+size, :]
-		x_train[i,:,:,:] = img
-		i += 1
-
-	return x_train
-
-def classify_training(x_train):
-	total_imgs = x_train.shape[0]
-
-	y_train = np.zeros([total_imgs, 1], dtype=np.uint8)
+# Generates the X and Y for the positive cases as given by ROI_centers locations
+def find_positives(image, ROI_centers):
 	
-	plt.ion()
-	plt.figure()
+	return (X, Y)
+
+# Generates X and Y for the negative cases by scanning chopping the image
+# into segments and ignoring the positive cases
+def find_negatives(image, ROI_centers):
+
+	return (X, Y)
 	
-	for i in range(total_imgs):
-		img = x_train[i,:,:,:]
-		plt.clf()
-		plt.imshow(img)
-		plt.draw()
-		plt.pause(0.01)
-		classify = input("If the image is a car press 1: ")
-		if classify == '1':
-			y_train[i,:] = 1.
 
-	print('This set had {} images of cars.'.format(np.sum(y_train)))
-
-	return y_train
-
-def save_arrays(img_number, x_train, y_train):
+def save_arrays(file_number, X, Y):
 	x_fname = 'classified_arrays\{}_X.npy'.format(img_number)
 	y_fname = 'classified_arrays\{}_Y.npy'.format(img_number)
 
-	np.save(x_fname, x_train)
-	np.save(y_fname, y_train)
+	np.save(x_fname, X)
+	np.save(y_fname, Y)
 
 
 def main():
-	img_number = input("Enter filename to process (e.g. 12, 79, etc.): ")
-	img_fname = 'google_image_dump\{}.png'.format(img_number)
+	file_number = input("Enter filename to process (e.g. 12, 79, etc.): ")
+	img_fname = 'google_image_dump/{}.png'.format(file_number)
+	centres_fname = 'google_image_dump/{}.txt'.format(file_number)
 
-	img_array = imread(img_fname)
+	image = imread(img_fname)
+	ROI_centers = pd.read_csv(centres_fname, sep=',', header=None).values[:-1]
 
-	img_array = crop_img(img_array, 40)
+	image = crop_img_bottom(full_image, 20)
 
-	x_train = make_training_data(img_array)
-	
-	y_train = classify_training(x_train)
+	(X1, Y1) = find_positives(full_image, ROI_centers)
 
-	save_arrays(img_number, x_train, y_train)
+	(X0, Y0) = find_negatives(full_image, ROI_centers)
+
+	X = np.concatenate((X1,X0), axis=)
+	Y = np.concatenate((Y1,Y0), axis=)
+
+	save_arrays(img_number, X, Y)
 
 if __name__ == "__main__":
     # execute only if run as a script
     main()
+
+
+# import pdb; pdb.set_trace()
