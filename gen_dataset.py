@@ -49,7 +49,7 @@ class Image:
 		else:
 			return None
 
-# Generates the X and Y for the positive cases as given by ROI_centers locations
+# Generates the X for the positive cases as given by ROI_centers locations
 def find_positives(image, car_locations):
 	crop_size = 40
 
@@ -62,15 +62,14 @@ def find_positives(image, car_locations):
 			X_list.append(ROI_image)
 
 	X = np.stack(X_list, axis=0)
-	Y = np.ones((X.shape[0],1), int)
 
-	return (X, Y)
+	return X
 
-# Generates X and Y for the negative cases by scanning chopping the image
+# Generates X for the negative cases by scanning chopping the image
 # into segments and ignoring the positive cases
 def find_negatives(image, car_locations):
 	crop_size = 40
-	stride = 20
+	stride = 50
 	car_radius = 15
 
 	height_steps = 1 + (image.row_size - crop_size) // stride
@@ -97,17 +96,16 @@ def find_negatives(image, car_locations):
 			X_list.append(ROI_image)
 
 	X = np.stack(X_list, axis=0)
-	Y = np.zeros((X.shape[0],1), int)
 
-	return (X, Y)
+	return X
 
-# Saves the X and Y arrays into files to be read with numpy later
-def save_arrays(file_number, X, Y):
-	x_fname = 'classified_arrays/{}_X.npy'.format(file_number)
-	y_fname = 'classified_arrays/{}_Y.npy'.format(file_number)
+# Saves the X0 and X1 arrays into files to be read with numpy later
+def save_arrays(file_number, X0, X1):
+	x0_fname = 'classified_arrays/{}_X0.npy'.format(file_number)
+	x1_fname = 'classified_arrays/{}_X1.npy'.format(file_number)
 
-	np.save(x_fname, X)
-	np.save(y_fname, Y)
+	np.save(x0_fname, X0)
+	np.save(x1_fname, X1)
 
 # The main script
 def main(file_number):
@@ -119,21 +117,14 @@ def main(file_number):
 	image = Image(img_fname)
 	image.crop_img_bottom(20)
 
-	(X1, Y1) = find_positives(image, car_locations)
-	(X0, Y0) = find_negatives(image, car_locations)
+	X1 = find_positives(image, car_locations)
+	X0 = find_negatives(image, car_locations)
 
 	print('There are {} pictures of cars and {} pictures of not cars'.format(X1.shape[0], X0.shape[0]))
 
-	X = np.concatenate((X1, X0), axis=0)
-	Y = np.concatenate((Y1, Y0), axis=0)
-
-	save_arrays(file_number, X, Y)
+	save_arrays(file_number, X0=X0, X1=X1)
 
 if __name__ == "__main__":
     # execute only if run as a script
 	file_number = input("Enter filename to process (e.g. 12, 79, etc.): ")
 	main(file_number)
-
-# import pdb; pdb.set_trace()
-
-
