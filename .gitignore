@@ -102,10 +102,12 @@ ENV/
 
 # images
 .png
-google_image_dump/
 
 # My api key
 /api_key.txt
 
 # My directories
 classified_arrays/
+google_image_dump/
+saved_figures/
+data/
