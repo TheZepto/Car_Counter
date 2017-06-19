@@ -60,5 +60,5 @@ def main():
 	save_data(X_train, X_test, Y_train, Y_test)
 
 if __name__ == "__main__":
-    # execute only if run as a script
+	# execute only if run as a script
 	main()
