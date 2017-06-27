@@ -76,10 +76,13 @@ def get_cropped_images(image):
 def main():
 	model = load_model('saved_models/model.70-0.05.hdf5')
 
-	img = Image('test_images/04.png')
+	img = Image('test_images/02.png')
 	img.crop_img_bottom(20)
 
 	X, ROI = get_cropped_images(img)
+
+	X = X.astype('float32')
+	X /= 255
 
 	y_prob = model.predict(X)
 
@@ -92,8 +95,9 @@ def main():
 	# y_hat = np.argmax(y_prob, axis=1)
 	plt.figure()
 	plt.imshow(img.array)
-	plt.imshow(prob_map, alpha=0.4, cmap='BuPu')
+	plt.imshow(prob_map, alpha=0.4, cmap='Reds')
 	plt.show()
+	plt.close()
 
 if __name__ == "__main__":
 	# execute only if run as a script
