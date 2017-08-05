@@ -42,7 +42,7 @@ class S3Archive:
 
         archive_in_ram.seek(0)  # <--- reset your cursor
 
-        print("Archive written with {} files.".
+        print("Archive written with {} files".
               format(len(self.files_for_archive))
               )
         return archive_in_ram
