@@ -11,25 +11,25 @@ Pre-requisties:
 import requests
 import itertools
 import os
+import sys
 
-from S3Archive import S3Archive
+from Archive import Archive
+from S3 import S3Bucket
 
 
 def main():
-    s3archive = S3Archive(
-        archive_name='GoogleMapsImages',
-        bucket_name='zepto-archive',
-        add_datetime_to_name=True
-    )
     # Google static maps API key must be stored in api_key.txt
     api_key = open('api_key.txt', 'r').read()
 
     # Define start positions for the lat and log
     lat_start = -27.458462
     long_start = 153.035735
-    # Define the lat and long increments - this depends on the start lat and long
+    # Define the lat and long increments - this depends on the start position
     lat_inc = -0.0007
     long_inc = 0.0009
+
+    # Make a file list to add to an archive and upload to S3
+    file_list = []
 
     # Iterate over a 10x10 grid and capture satellite images
     for i, j in itertools.product(range(10), range(10)):
@@ -37,20 +37,29 @@ def main():
         longitude = long_start + (j * long_inc)
 
         # Generate the Google maps URL
-        map_address = 'https://maps.googleapis.com/maps/api/staticmap?center={},{}&zoom=20&size=640x640&maptype=satellite&key={}'.format(
-                        latitude, longitude, api_key
-                        )
+        map_address = ('https://maps.googleapis.com/maps/api/staticmap?' +
+                       'center={},{}'.format(latitude, longitude) +
+                       '&zoom=20&size=640x640' +
+                       '&maptype=satellite&key={}'.format(api_key))
 
-        # Specify the filename to save the png to in the google_image_dump folder
+        # Specify the directory and filename to save the png to
+        directory = 'google_image_dump'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
         img_fname = os.path.join('google_image_dump', '{}{}.png'.format(i, j))
 
         # Fetch the image at the URL and save it to the filename
         with open(img_fname, 'wb') as f:
             f.write(requests.get(map_address).content)
 
-        s3archive.addfile(img_fname)
+        file_list.append(img_fname)
 
-    s3archive.create()
+    # Build an archive with the image files
+    archive = Archive(file_list)
+    buffer = archive.streamtargz()
+    # Upload the archive to the zepto-archive bucket in S3
+    s3bucket = S3Bucket('zepto-archive')
+    s3bucket.uploadstream(buffer, archive.name)
 
 if __name__ == "__main__":
     # execute only if run as a script
