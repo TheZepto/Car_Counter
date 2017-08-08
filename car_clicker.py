@@ -24,21 +24,10 @@ def carclicker(fname, scale=2):
     canvas.create_image(0, 0, image=img, anchor="nw")
 
     coords = []
+    coord_rects = []
+    temp_rect = None
 
-    def logcoords(event):
-        # Append the x, y click coords to coords list
-        nonlocal coords, scale
-        x = event.x
-        y = event.y
-
-        drawbox(x, y)
-
-        column = x // 2
-        row = y // 2
-
-        coords.append((row, column))
-
-    def drawbox(x, y):
+    def drawbox(x, y, colour='white'):
         # Draws a rectangle around the x, y position
         nonlocal canvas
         size = 80
@@ -46,10 +35,51 @@ def carclicker(fname, scale=2):
         x1 = x0 + size
         y0 = y - size//2
         y1 = y0 + size
-        canvas.create_rectangle(x0, y0, x1, y1, width=2, outline='white')
+        id = canvas.create_rectangle(x0, y0, x1, y1, width=2, outline=colour)
+        return id
 
-    # Bind left click on mouse to logcoords
-    canvas.bind("<Button 1>", logcoords)
+    def tempbox(event):
+        nonlocal canvas, temp_rect
+        x = event.x
+        y = event.y
+        # Remove the last rectangle
+        if temp_rect is not None:
+            canvas.delete(temp_rect)
+        # Draw the new rectangle
+        temp_rect = drawbox(x, y, 'white')
+
+    def logcoords(event):
+        # Append the x, y click coords to coords list
+        nonlocal coords, coord_rects, temp_rect, scale
+        x = event.x
+        y = event.y
+        # Remove the temporary rectangle
+        if temp_rect is not None:
+            canvas.delete(temp_rect)
+            temp_rect = None
+        # Draw a rectangle around the coords
+        rect_id = drawbox(x, y, 'green')
+        # Scale x and y coords to row column of original image
+        column = x // scale
+        row = y // scale
+        # Record the coords and rect id to the lsit
+        coords.append((row, column))
+        coord_rects.append(rect_id)
+
+    def removelastcoord(event):
+        nonlocal canvas, coords, coord_rects
+        # Pop last coord and rect id from list
+        rect_id = coord_rects.pop()
+        coords.pop()
+        # Delete the rectangle
+        canvas.delete(rect_id)
+
+    # Bind left click motion to draw a temporary rectangle
+    canvas.bind("<B1-Motion>", tempbox)
+    # Bind release left click to log the coord
+    canvas.bind("<ButtonRelease-1>", logcoords)
+    # Bind right click to remove the last coord
+    canvas.bind("<Button-3>", removelastcoord)
 
     root.mainloop()
 
