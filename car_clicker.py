@@ -118,7 +118,7 @@ def main():
 
     img_files = glob.glob('google_image_dump/*.png')
 
-    for img_file in img_files[:1]:
+    for img_file in img_files:
         coords = carclicker(img_file)
 
         dat_file = img_file + '.dat'
@@ -128,11 +128,11 @@ def main():
 
         dat_file_list.append(dat_file)
 
-    # archive = Archive(dat_file_list)
-    # buffer = archive.streamtargz()
+    archive = Archive(dat_file_list)
+    buffer = archive.streamtargz()
 
-    # s3bucket = S3Bucket('zepto-archive')
-    # s3bucket.uploadstream(buffer, archive.name)
+    s3bucket = S3Bucket('zepto-archive')
+    s3bucket.uploadstream(buffer, archive.name)
 
 
 if __name__ == "__main__":
