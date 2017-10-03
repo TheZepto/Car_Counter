@@ -8,7 +8,7 @@ from Archive import Archive
 from S3 import S3Bucket
 
 
-def carclicker(fname, scale=2):  
+def carclicker(fname, scale=2):
     # Loading the image
     org_image = Image.open(fname)
     width, height = org_image.size
@@ -35,7 +35,8 @@ def carclicker(fname, scale=2):
         x1 = x0 + size
         y0 = y - size//2
         y1 = y0 + size
-        id = canvas.create_rectangle(x0, y0, x1, y1, width=width, outline=colour)
+        id = canvas.create_rectangle(x0, y0, x1, y1,
+                                     width=width, outline=colour)
         return id
 
     def drawcircle(x, y, colour='white', width=1, size=80):
